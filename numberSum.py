@@ -25,6 +25,7 @@ from keras.layers import Conv2D
 # 9  Calculate the distance from nearest to pnt_vec_scaled.
 # 10 Translate nearest back to the start/end line.
 # Malcolm Kesson 16 Dec 2012
+#http://www.fundza.com/vectors/point2line/index.html
 
 arrayOfRecognizedDigits = []
 
@@ -103,12 +104,12 @@ def foundDigit(rd):
         dot1 = [recognizeddigits.x + recognizeddigits.width, recognizeddigits.y + recognizeddigits.height]  # dobijena koordinata za donji desni ugao regiona
         dot2 = [tempX + tempWidth, tempY + tempHeight]  # dobijena koordinata za gornji levi ugao regiona
         distanceBetweenDots = length(vector(dot1, dot2))
-        if (distanceBetweenDots < 21):
+        if (distanceBetweenDots < 20):
             return recognizeddigits
 
     return None
 
-
+#https://towardsdatascience.com/build-your-own-convolution-neural-network-in-5-mins-4217c2cf964f
 def cnn():
     (x_train, y_train), (x_test, y_test) = mnist.load_data()
 
@@ -125,10 +126,10 @@ def cnn():
     model.add(Conv2D(32, kernel_size=(3, 3),
                      activation='relu',
                      input_shape=(28, 28, 1)))
-    model.add(Conv2D(32, (3, 3), activation='relu'))
+    model.add(Conv2D(64, (3, 3), activation='relu'))
     model.add(Dropout(0.25))
     model.add(Flatten())
-    model.add(Dense(128, activation='relu'))
+    model.add(Dense(1024, activation='relu'))
     model.add(Dropout(0.6))
     model.add(Dense(10, activation='softmax'))
     model.compile(loss=keras.losses.categorical_crossentropy,
@@ -268,7 +269,7 @@ if __name__ == "__main__":
         frame_num += 1
         ret_val, frame = cap.read()
         cv2.line(frame, (blue_line[0], blue_line[1]), (blue_line[2], blue_line[3]), (0, 0, 255), 2)
-        cv2.imshow("linija", frame)
+        #cv2.imshow("linija", frame)
         if ret_val == True:
 
             grayFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -279,11 +280,11 @@ if __name__ == "__main__":
             for rd in arrayOfRecognizedDigits:
                 bottomRight = np.array([rd.x + rd.width, rd.y + rd.height])
                 distanceBetweenNumAndLine = pnt2line(bottomRight, p1, p2)
-                if (distanceBetweenNumAndLine <= 7):
+                if (distanceBetweenNumAndLine <= 6):
                     if (rd.passed == False):
                         rd.passed = True
                         # sumOfNumbers
-                        picture = img_bin[rd.y-5:bottomRight[1]+5, rd.x-5:bottomRight[0]+5]
+                        picture = img_bin[rd.y:bottomRight[1], rd.x:bottomRight[0]]
                         picture = erode(picture)
                         img = resize_region(picture)
                         scaledImage = scale_to_range(img)
@@ -294,11 +295,9 @@ if __name__ == "__main__":
                         sumOfNumbers += np.argmax(predictedNumber)
             print(sumOfNumbers)
             cv2.waitKey(27)
-            cv2.imshow("ajde radi", frame)
+            cv2.imshow("video", frame)
         if not ret_val:
             break
-
-
 
     cap.release()
 
